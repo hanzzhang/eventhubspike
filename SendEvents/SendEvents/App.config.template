@@ -8,7 +8,8 @@
     <add key="ListenPolicyKey" value="ListenPolicyKey" />
     <add key="StorageAccountKey" value="StorageAccountKey" />
 
-    <add key="NumberOfDevices" value="20" />
+    <add key="NumberOfPartitions" value="10" />
+	<add key="NumberOfDevices" value="20" />
     <add key="EventHubName" value="EventHubName" />
     <add key="EventHubNamespace" value="EventHubNamespace" />
     <add key="SendPolicyName" value="send" />

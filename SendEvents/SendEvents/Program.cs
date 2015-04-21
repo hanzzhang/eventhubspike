@@ -18,7 +18,15 @@ namespace SendEvents
         {
             SendEvents();
 
-            RegisterEventProcessor();
+            var useEventProcessorHost = false;
+            if (useEventProcessorHost)
+            {
+                RegisterEventProcessor();
+            }
+            else
+            {
+                ReceiveEvents();
+            }
 
             Console.WriteLine("Press any key to exit");
             Console.Read();
@@ -115,6 +123,40 @@ namespace SendEvents
             }
             Console.WriteLine("SendEvents Completed");
             Console.WriteLine();
+        }
+
+        static void ReceiveEvents()
+        {
+            int numberOfPartitions = Convert.ToInt32(ConfigurationManager.AppSettings["numberOfPartitions"]);
+            string eventHubName = ConfigurationManager.AppSettings["EventHubName"];
+            string eventHubNamespace = ConfigurationManager.AppSettings["EventHubNamespace"];
+            string listenPolicyName = ConfigurationManager.AppSettings["ListenPolicyName"];
+            string listenPolicyKey = ConfigurationManager.AppSettings["ListenPolicyKey"];
+
+            string eventHubConnectionString = string.Format(
+                "Endpoint=sb://{0}.servicebus.windows.net/;SharedAccessKeyName={1};SharedAccessKey={2};TransportType=Amqp",
+                eventHubNamespace, listenPolicyName, listenPolicyKey);
+
+            var client = EventHubClient.CreateFromConnectionString(eventHubConnectionString, eventHubName);
+
+            EventHubConsumerGroup group = client.GetDefaultConsumerGroup();
+            for (var i = 0; i < numberOfPartitions; i++)
+            {
+                var partition = i;
+                Task t = Task.Run(() =>
+                {
+                    var receiver = group.CreateReceiver(client.GetRuntimeInformation().PartitionIds[partition]);
+                    bool receive = true;
+                    string myOffset;
+                    while (receive)
+                    {
+                        var message = receiver.Receive();
+                        myOffset = message.Offset;
+                        string body = Encoding.UTF8.GetString(message.GetBytes());
+                        Console.WriteLine(String.Format("{0}: {1}: {2}", partition, myOffset, body));
+                    }
+                });
+            }
         }
     }
 }
