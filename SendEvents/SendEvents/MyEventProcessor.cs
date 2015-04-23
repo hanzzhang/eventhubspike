@@ -25,9 +25,9 @@ namespace SendEvents
             foreach (var message in messages)
             {
                 var eventType = message.Properties["event-type"];
-                var bytes = message.GetBytes();
-                if (eventType.ToString() == "utf8string")
+                if (eventType != null && eventType.ToString() == "utf8string")
                 {
+                    var bytes = message.GetBytes();
                     var body = System.Text.Encoding.UTF8.GetString(bytes);
                     Console.WriteLine("got:" + body);
                 }
